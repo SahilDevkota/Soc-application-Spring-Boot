@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/refresh").permitAll()
                         .requestMatchers("/user/all").authenticated()
                         .requestMatchers("/investor/add").authenticated()
-                        .anyRequest().authenticated());
+                        .anyRequest().permitAll());
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

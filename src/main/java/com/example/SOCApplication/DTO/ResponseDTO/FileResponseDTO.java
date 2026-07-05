@@ -1,12 +1,9 @@
-package com.example.SOCApplication.DTO.RequestDTO;
+package com.example.SOCApplication.DTO.ResponseDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
-
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -15,10 +12,9 @@ import java.util.List;
 @NoArgsConstructor
 
 //DTO used for transferring Document data between client and server
-public class DocumentDTO {
+public class FileResponseDTO {
 
     private String objectKey;
 
-    private List<String> fileURLs;
 
 }

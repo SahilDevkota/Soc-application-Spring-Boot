@@ -1,9 +1,7 @@
 package com.example.SOCApplication.Controller;
 
 
-import com.example.SOCApplication.DTO.RequestDTO.DocumentDTO;
-import com.example.SOCApplication.Repository.DocumentRepository;
-import com.example.SOCApplication.ServiceImpl.DocumentServiceImpl;
+import com.example.SOCApplication.ServiceImpl.FileServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +16,7 @@ import java.util.List;
 public class DocumentController {
 
     //Service for handling document operations
-    private final DocumentServiceImpl documentService;
+    private final FileServiceImpl documentService;
 
     //Endpoint for adding document
     @PostMapping("/add")
@@ -26,6 +24,10 @@ public class DocumentController {
         return ResponseEntity.ok(documentService.uploadDocument(files));
     }
 
+    @PostMapping("/{id}")
+    public String sendDocs(@PathVariable Integer id) throws IOException {
+        return documentService.getTheFile(id);
+    }
 
 
 
