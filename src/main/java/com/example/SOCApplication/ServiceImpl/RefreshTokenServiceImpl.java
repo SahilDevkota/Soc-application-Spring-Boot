@@ -29,9 +29,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public ResponseEntity<Map> RefreshAccessToken(String refreshToken) {
 
         Map<String,String> response = new HashMap<>();
-        System.out.println("Refresh Token Service Impl Started");
         RefreshToken refreshToken1 = refreshTokenRepository.findByToken(refreshToken);
-        System.out.println("Ok refresh token is also checked!");
         String username = null;
         String token = null;
         if(refreshToken1 ==null){

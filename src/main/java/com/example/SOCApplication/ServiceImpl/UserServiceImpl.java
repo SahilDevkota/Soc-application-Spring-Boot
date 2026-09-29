@@ -7,6 +7,7 @@ import com.example.SOCApplication.DTO.ResponseDTO.TokenResponseDTO;
 import com.example.SOCApplication.Entity.RefreshToken;
 import com.example.SOCApplication.Entity.User;
 import com.example.SOCApplication.Enum.Roles;
+import com.example.SOCApplication.Exception.LoginException;
 import com.example.SOCApplication.Mapper.UserRegMapper;
 import com.example.SOCApplication.Repository.RefreshTokenRepository;
 import com.example.SOCApplication.Repository.UserRepository;
@@ -14,6 +15,8 @@ import com.example.SOCApplication.Service.UserService;
 import com.example.SOCApplication.Util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.Token;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +47,7 @@ public class UserServiceImpl implements UserService {
     //Utility package to generate JWT tokens
     private final JWTUtil jwtUtil;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     //--------REGISTER USER----------------
     @Override
@@ -72,12 +76,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> UserLogin(UserLoginDTO userLoginDTO) {
 
+
+
         System.out.println(userLoginDTO);
         //Checks if the user already exists in the database
-        User user = userRepository.findByUsername(userLoginDTO.getUsername()).orElseThrow();
+        User user = userRepository.findByUsername(userLoginDTO.getUsername()).orElseThrow(()-> new LoginException("Username or password not found"));
 
         //Checks if the two hashed password matches
         if(passwordEncoder.matches(userLoginDTO.getPassword(),user.getPassword())){
+
+            logger.info("User logged in successfully");
 
             //Create token response object
             TokenResponseDTO tokenResponseDTO = new TokenResponseDTO();
@@ -118,9 +126,11 @@ public class UserServiceImpl implements UserService {
                     .body(Map.of("AccessToken",tokenResponseDTO.getAccessToken()));
         }
         else{
-
             //If password is wrong, returns unauthorized response.
-            return ResponseEntity.status(401).build();
+            logger.info("Invalid Credentials");
+            throw new LoginException("Invalid username or password");
+
+
         }
 
 

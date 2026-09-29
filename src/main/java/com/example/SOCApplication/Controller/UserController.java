@@ -2,14 +2,12 @@ package com.example.SOCApplication.Controller;
 
 import com.example.SOCApplication.DTO.RequestDTO.UserLoginDTO;
 import com.example.SOCApplication.DTO.RequestDTO.UserRegDTO;
-import com.example.SOCApplication.DTO.ResponseDTO.TokenResponseDTO;
 import com.example.SOCApplication.Entity.User;
 import com.example.SOCApplication.Repository.UserRepository;
 import com.example.SOCApplication.ServiceImpl.RefreshTokenServiceImpl;
 import com.example.SOCApplication.ServiceImpl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
