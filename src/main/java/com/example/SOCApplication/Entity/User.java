@@ -40,4 +40,6 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<FileEntity> documents;
 
+    private int failedLoginAttempt;
+
 }

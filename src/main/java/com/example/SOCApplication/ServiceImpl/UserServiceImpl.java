@@ -14,7 +14,6 @@ import com.example.SOCApplication.Repository.UserRepository;
 import com.example.SOCApplication.Service.UserService;
 import com.example.SOCApplication.Util.JWTUtil;
 import lombok.RequiredArgsConstructor;
-import org.antlr.v4.runtime.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -47,11 +46,14 @@ public class UserServiceImpl implements UserService {
     //Utility package to generate JWT tokens
     private final JWTUtil jwtUtil;
 
+    private int attempt;
+
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     //--------REGISTER USER----------------
     @Override
     public ResponseEntity<String> registerUser(UserRegDTO userRegDTO) {
+
 
         //Checks if user with same userame exists or not
         if(userRepository.existsByUsername(userRegDTO.getUsername())){
@@ -77,61 +79,74 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> UserLogin(UserLoginDTO userLoginDTO) {
 
 
-
-        System.out.println(userLoginDTO);
-        //Checks if the user already exists in the database
-        User user = userRepository.findByUsername(userLoginDTO.getUsername()).orElseThrow(()-> new LoginException("Username or password not found"));
-
-        //Checks if the two hashed password matches
-        if(passwordEncoder.matches(userLoginDTO.getPassword(),user.getPassword())){
-
-            logger.info("User logged in successfully");
-
-            //Create token response object
-            TokenResponseDTO tokenResponseDTO = new TokenResponseDTO();
-
-            //Create Refresh Token object
-            RefreshToken refreshToken = new RefreshToken();
-
-            //Generating an Access Token
-            tokenResponseDTO.setAccessToken(jwtUtil.GenerateAccessToken(user.getUsername()));
-
-            //Generating a Refresh Token
-            String generatedRefreshToken = jwtUtil.GenerateRefreshToken(user.getUsername());
-
-            //Setting the refresh token to the DTO
-            tokenResponseDTO.setRefreshToken(generatedRefreshToken);
-
-            // Grabbing the expiration date of the token
-            Date expiration = jwtUtil.getExpirationDateFromToken(generatedRefreshToken);
-
-            //Setting up the Refresh Token object
-            refreshToken.setToken(generatedRefreshToken);
-            refreshToken.setUsername(user.getUsername());
-            refreshToken.setExpirationDate(expiration);
+        String username = userLoginDTO.getUsername();
 
 
-            //Saving the Refresh token inside database
-            refreshTokenRepository.save(refreshToken);
 
-            ResponseCookie cookie = ResponseCookie.from("refreshtoken",generatedRefreshToken)
-                    .httpOnly(true)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(Duration.ofDays(7))
-                    .sameSite("Strict")
-                    .build();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE,cookie.toString())
-                    .body(Map.of("AccessToken",tokenResponseDTO.getAccessToken()));
-        }
-        else{
-            //If password is wrong, returns unauthorized response.
-            logger.info("Invalid Credentials");
-            throw new LoginException("Invalid username or password");
+            //Checks if the user already exists in the database
+            User user = userRepository.findByUsername(userLoginDTO.getUsername()).orElseThrow(()-> new LoginException("Username or password not found"));
+
+            //Checks if the two hashed password matches
+            if (passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
+
+                logger.info("User logged in successfully");
+                user.setFailedLoginAttempt(0);
+
+                //Create token response object
+                TokenResponseDTO tokenResponseDTO = new TokenResponseDTO();
+
+                //Create Refresh Token object
+                RefreshToken refreshToken = new RefreshToken();
+
+                //Generating an Access Token
+                tokenResponseDTO.setAccessToken(jwtUtil.GenerateAccessToken(user.getUsername()));
+
+                //Generating a Refresh Token
+                String generatedRefreshToken = jwtUtil.GenerateRefreshToken(user.getUsername());
+
+                //Setting the refresh token to the DTO
+                tokenResponseDTO.setRefreshToken(generatedRefreshToken);
+
+                // Grabbing the expiration date of the token
+                Date expiration = jwtUtil.getExpirationDateFromToken(generatedRefreshToken);
+
+                //Setting up the Refresh Token object
+                refreshToken.setToken(generatedRefreshToken);
+                refreshToken.setUsername(user.getUsername());
+                refreshToken.setExpirationDate(expiration);
 
 
-        }
+                //Saving the Refresh token inside database
+                refreshTokenRepository.save(refreshToken);
+
+                ResponseCookie cookie = ResponseCookie.from("refreshtoken", generatedRefreshToken)
+                        .httpOnly(true)
+                        .secure(true)
+                        .path("/")
+                        .maxAge(Duration.ofDays(7))
+                        .sameSite("Strict")
+                        .build();
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                        .body(Map.of("AccessToken", tokenResponseDTO.getAccessToken()));
+            } else {
+
+                attempt = user.getFailedLoginAttempt();
+                attempt += 1;
+                user.setFailedLoginAttempt(attempt);
+                userRepository.save(user);
+
+                if (attempt <= 4) {
+                    logger.info("Invalid Credentials");
+                } else if (attempt >= 5 && attempt <= 7) {
+                    logger.warn("Alert!! User is trying to log in multiple times. Send, the data to the user to analyze");
+                } else if (attempt >= 8) {
+                    logger.warn("call defender");
+                }
+                //If password is wrong, returns unauthorized response.
+
+                throw new LoginException("Invalid username or password");
+            }
 
 
     }
