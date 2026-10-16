@@ -1,0 +1,2 @@
+document = None
+print(document)

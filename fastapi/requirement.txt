@@ -1,0 +1,9 @@
+langchain.core
+langchain
+langchain.community
+fastapi
+tika
+boto3
+nbimporter
+langgraph
+langchain-groq

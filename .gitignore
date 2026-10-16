@@ -31,3 +31,25 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Frontend dependencies
+node_modules/
+dist/
+build/
+
+# Python dependencies and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Secrets
+.env
+.env.*
+credentials.env
+
+# Logs
+logs/
+*.log
+*.log.*
+*.gz
