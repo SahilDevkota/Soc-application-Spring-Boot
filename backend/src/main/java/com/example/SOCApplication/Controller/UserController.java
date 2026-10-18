@@ -34,7 +34,6 @@ UserController {
     //Endpoint for registering user
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody UserRegDTO userRegDTO){
-        System.out.println("Working");
         return userService.registerUser(userRegDTO);
     }
 
@@ -57,6 +56,11 @@ UserController {
     @PostMapping("/refresh")
     public ResponseEntity<Map> refresh(@CookieValue("refreshtoken") String refreshToken){
        return refreshTokenService.RefreshAccessToken(refreshToken);
+    }
+
+    @PostMapping("/disable")
+    public String disableAccount(String username,Boolean isDisabled){
+        return userService.disableTheAccount(username,isDisabled);
 
     }
 

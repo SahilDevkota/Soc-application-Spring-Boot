@@ -1,6 +1,8 @@
 package com.example.SOCApplication.Filter;
 
 import com.example.SOCApplication.Config.SecurityConfig;
+import com.example.SOCApplication.Entity.User;
+import com.example.SOCApplication.Repository.UserRepository;
 import com.example.SOCApplication.ServiceImpl.CustomUserDetailService;
 import com.example.SOCApplication.Util.JWTUtil;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
@@ -24,6 +27,9 @@ import java.io.IOException;
 //JWT authentication filter that intercepts, request and validates the token
 //It sets the authenticated user in the security Context
 public class JWTAuthFilter extends OncePerRequestFilter {
+
+
+    private final UserRepository userRepository;
 
     //Service for handling user details operations
     private final CustomUserDetailService customUserDetailService;
@@ -38,15 +44,16 @@ public class JWTAuthFilter extends OncePerRequestFilter {
            System.out.println(authorization);
            String token=null;
            String username = null;
-           System.out.println("Ok now checking the authorization");
-           System.out.println(authorization);
+
            if(authorization!=null && authorization.startsWith("Bearer ")) {
                token = authorization.substring(7);
                System.out.println("Grabbed the token");
                username = jwtUtil.extractUsername(token);
 
-               System.out.println("username extracted");
-               if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+               User user = userRepository.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("Username not found"));
+
+
+               if (!user.isDisabled() && username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                    UserDetails userDetails = customUserDetailService.loadUserByUsername(username);
 
                    System.out.println("userdetails extracted");

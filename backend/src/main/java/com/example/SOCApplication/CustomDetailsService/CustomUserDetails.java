@@ -30,6 +30,8 @@ public class CustomUserDetails implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Roles role;
 
+    private Boolean disabled;
+
     //Return's user roles and permissions as granted authorities
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,6 +81,6 @@ public class CustomUserDetails implements UserDetails {
     //Checks whether the account is enabled or not
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return !disabled;
     }
 }

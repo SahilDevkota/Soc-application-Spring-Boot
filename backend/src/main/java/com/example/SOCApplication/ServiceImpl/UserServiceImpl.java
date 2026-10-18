@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,8 @@ public class UserServiceImpl implements UserService {
     //Utility package to generate JWT tokens
     private final JWTUtil jwtUtil;
 
+    private final CustomUserDetailService customUserDetailService;
+
     private final AnalyzerServiceImpl analyzerService;
 
     private final SecurityEventRepository securityEventRepository;
@@ -80,6 +83,8 @@ public class UserServiceImpl implements UserService {
 
         //Setting the role to viewer as default
         user.setRole(Roles.VIEWER);
+
+        user.setDisabled(false);
         //Saving inside the database
         userRepository.save(user);
 
@@ -174,6 +179,17 @@ public class UserServiceImpl implements UserService {
                 throw new LoginException("Invalid username or password");
             }
 
+
+    }
+
+
+    public String disableTheAccount(String username, Boolean isDisabled){
+
+        User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("Username not Found!!"));
+        user.setDisabled(isDisabled);
+        userRepository.save(user);
+
+        return "Account Disabled";
 
     }
 }

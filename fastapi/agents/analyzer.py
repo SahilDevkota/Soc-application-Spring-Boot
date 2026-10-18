@@ -44,8 +44,10 @@ def call_analyzer(file):
         {call_defender_agent}
         Whenever there is any attempt on the account, after certain criteria, you will be provided with the list of log file that contains information such as username, number of failed attempts and so on. 
         If the number of failed attempt is more than 4, then you will first step back and analyze the log file carefully. Then, you got two choice, either keep on monitoring or call the defender tool.
-        If you call the defender tool, then you must carefully examine the log file and return value for event and risk level. The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'.
-        
+        If you call the defender tool, then you must carefully examine the log file and return value for report and risk level.
+        The report must be professionally written, and it should also contain information about the event that caused it.
+        The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'.
+    
         Log File:
         {file}
 
@@ -122,5 +124,5 @@ def call_analyzer(file):
         "messages" : [human_message]
     })     
 
-    print(response["messages"][-1].content)
+  
     return response

@@ -42,4 +42,6 @@ public class User {
 
     private int failedLoginAttempt;
 
+    private boolean disabled;
+
 }
