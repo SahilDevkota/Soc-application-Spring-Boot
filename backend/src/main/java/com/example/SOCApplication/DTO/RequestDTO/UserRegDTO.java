@@ -35,6 +35,6 @@ public class UserRegDTO {
     @NotNull
     private LocalDate dateOfBirth;
 
-    @NotNull
-    private boolean isDisabled;
+
+    private Boolean isDisabled;
 }

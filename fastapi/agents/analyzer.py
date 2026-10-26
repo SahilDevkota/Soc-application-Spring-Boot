@@ -21,6 +21,9 @@ def call_analyzer(file):
 
     structured_model = groq_model.with_structured_output(modelStructuredOutput)
 
+
+    # Ok so yesma chai aba taile, yeuta risk_level ra log file ko second prompt ma rakhni, that same thing is passed towards the model that will call the defender agent.
+
     @tool 
     def call_defender_agent(log: str, risk_level:str)-> str:
         """Calls the defender agent"""
@@ -37,7 +40,7 @@ def call_analyzer(file):
     def llm_call(state: Dict):
         """Call the LLM model"""
 
-        prompt = f"""
+        prompt1 = f"""
         You are a Cyber Analyst, who has years of experience finding threats, writing reports, identifying suspicious login attempts and maintaining logs. A company just faced a phishing attack, and wants you to act and call the defender when it's necessary.
         You are given a set of tools that can be used when required. 
         tools :
@@ -54,18 +57,33 @@ def call_analyzer(file):
         Make sure, if you're confused or you don't know what to do, just simply say "I don't know".
         And, keep your focus only on the log file, instead of creating your own answer."""
 
-        systemMessage = SystemMessage(content=prompt)
+        prompt2 = f"""You are a Cyber Analyst, who has years of experience finding threats, writing reports, identifying suspicious login attempts and maintaining logs. 
+        A company just faced a phishing attack, and wants you to act and call the defender when it's necessary.
+            
+                Whenever there is any attempt on the account, after certain criteria, you will be provided with the list of log file that contains information such as username, number of failed attempts and so on. 
+                If the number of failed attempt is more than 4, then you will first step back and analyze the log file carefully.
+                Then, you need to generate the output in dictionary format. An example for the format is given below:
+
+
+                
+
+                If you call the defender tool, then you must carefully examine the log file and return value for report and risk level.
+                The report must be professionally written, and it should also contain information about the event that caused it.
+                The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'."""
+
+        systemMessage1 = SystemMessage(content=prompt1)
+        systemMessage2 = SystemMessage(content=prompt2)
 
         response1 = model_with_tools.invoke(
             [
-                systemMessage
+                systemMessage1
             ] + 
             state['messages']
         )
 
         response2 =  structured_model.invoke(
             [
-                systemMessage
+                systemMessage2
             ] + 
             state['messages']
         )
