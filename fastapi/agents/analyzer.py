@@ -11,6 +11,7 @@ from langchain.messages import ToolMessage
 from typing import Literal
 from langgraph.graph import StateGraph,START,END
 from IPython.display import display,Image
+import json
 from langchain.messages import HumanMessage
 
 def call_analyzer(file):
@@ -19,7 +20,7 @@ def call_analyzer(file):
         event : str
         risk_level : str
 
-    structured_model = groq_model.with_structured_output(modelStructuredOutput)
+    structured_model = groq_model.with_structured_output(modelStructuredOutput,method="json_schema")
 
 
     # Ok so yesma chai aba taile, yeuta risk_level ra log file ko second prompt ma rakhni, that same thing is passed towards the model that will call the defender agent.
@@ -40,54 +41,75 @@ def call_analyzer(file):
     def llm_call(state: Dict):
         """Call the LLM model"""
 
-        prompt1 = f"""
-        You are a Cyber Analyst, who has years of experience finding threats, writing reports, identifying suspicious login attempts and maintaining logs. A company just faced a phishing attack, and wants you to act and call the defender when it's necessary.
-        You are given a set of tools that can be used when required. 
-        tools :
-        {call_defender_agent}
-        Whenever there is any attempt on the account, after certain criteria, you will be provided with the list of log file that contains information such as username, number of failed attempts and so on. 
-        If the number of failed attempt is more than 4, then you will first step back and analyze the log file carefully. Then, you got two choice, either keep on monitoring or call the defender tool.
-        If you call the defender tool, then you must carefully examine the log file and return value for report and risk level.
-        The report must be professionally written, and it should also contain information about the event that caused it.
-        The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'.
-    
-        Log File:
-        {file}
-
-        Make sure, if you're confused or you don't know what to do, just simply say "I don't know".
-        And, keep your focus only on the log file, instead of creating your own answer."""
-
-        prompt2 = f"""You are a Cyber Analyst, who has years of experience finding threats, writing reports, identifying suspicious login attempts and maintaining logs. 
+        structured_prompt = f"""You are a Cyber Analyst, who has years of experience finding threats, writing reports, identifying suspicious login attempts and maintaining logs. 
         A company just faced a phishing attack, and wants you to act and call the defender when it's necessary.
             
-                Whenever there is any attempt on the account, after certain criteria, you will be provided with the list of log file that contains information such as username, number of failed attempts and so on. 
-                If the number of failed attempt is more than 4, then you will first step back and analyze the log file carefully.
-                Then, you need to generate the output in dictionary format. An example for the format is given below:
+        Whenever there is any attempt on the account, after certain criteria, you will be provided with the list of log file that contains information such as username, number of failed attempts and so on. 
+        If the number of failed attempt is more than 4, then you will first step back and analyze the log file carefully.
+        
+        List of log file:
+        {file}               
+
+        The report must be professionally written, and it should also contain information about the event that caused it.
+        The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'."""
+
+        
+
+        systemMessage1 = SystemMessage(content=structured_prompt)
+       
 
 
-                
 
-                If you call the defender tool, then you must carefully examine the log file and return value for report and risk level.
-                The report must be professionally written, and it should also contain information about the event that caused it.
-                The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'."""
-
-        systemMessage1 = SystemMessage(content=prompt1)
-        systemMessage2 = SystemMessage(content=prompt2)
-
-        response1 = model_with_tools.invoke(
+        response2 =  structured_model.invoke(
             [
                 systemMessage1
             ] + 
             state['messages']
         )
 
-        response2 =  structured_model.invoke(
+        print(response2)
+
+        json_response = response2.model_dump_json()
+
+        tool_model_prompt = f"""
+            You are a Cyber Analyst, who has years of experience finding threats, writing reports, identifying suspicious login attempts and maintaining logs. A company just faced a phishing attack, and wants you to act and call the defender when it's necessary.
+            You are given a set of tools that can be used when required. 
+
+            Tools :
+            {call_defender_agent}
+            Whenever there is any attempt on the account, after certain criteria, you will be provided with the list of log file that contains information such as username, number of failed attempts and so on. 
+            If the number of failed attempt is exactly or more than 4, then you will first step back and analyze the response carefully. 
+            
+            response: 
+            {json_response}
+            
+            Once, you've analyzed the response, you got two option.
+            The first one is to keep monitoring, if the login attempt is exactly or less than 4.
+            If the failed attempt is more than 4, immedieately call the defender agent.                       
+
+
+            Before calling the defender agent, you need to carefully examine the response and write a report and risk level 
+            in dictionary format. Then, use the tool to call the defender agent and passed the output as argument.
+
+            
+            The report must be professionally written, and it should also contain information about the event that caused it.
+            The risk level must be either of one i.e 'HIGH','LOW','MEDIUM'.
+            
+            The dictionary should have event and risk_level keys. And should look something like:
+            {{"event" : "Around 10 a.m, in this morning, Raj had 10 attempts for his account.Even if you forget your password, you can easily change it, by clicking 'forgot_password' option. Instead, he kept on logging in.That means, somethings wrong. I will call the defender agent, to disable his account for a while until further notice from the admin. ","risk_level" :"HIGH"}}
+            The event must be explained in detail and should answer the 5W and 1H question i.e. why,where,who,what,whose,how
+   
+            Make sure, if you're confused or you don't know what to do, just simply say "I don't know".
+            And, keep your focus only on the log file, instead of creating your own answer."""
+
+        systemMessage2 = SystemMessage(content=tool_model_prompt)
+
+        response1 = model_with_tools.invoke(
             [
                 systemMessage2
             ] + 
             state['messages']
         )
-
         
         return {
             "messages" : [response1],

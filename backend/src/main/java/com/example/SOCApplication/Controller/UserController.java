@@ -48,7 +48,6 @@ UserController {
     //@PreAuthorize("hasAuthority('FULL_CONTROL')")
     @GetMapping("/all")
     public List<User> getAll(){
-        System.out.println("Pre auth working");
         return userRepository.findAll();
     }
 
