@@ -5,8 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.SOCApplication.DTO.RequestDTO.UserLoginDTO;
-import com.example.SOCApplication.Service.UserService;
 import com.example.SOCApplication.ServiceImpl.UserServiceImpl;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,9 @@ class UserControllerTest {
 
     @MockitoBean
     private UserServiceImpl userService;
+
+    private MockWebServer server;
+
 
     @Test
     void loginUsersShouldReturn() throws Exception{
@@ -60,11 +64,17 @@ class UserControllerTest {
     @Test
     void PasswordMatchesTheEncodedPassword() throws Exception {
 
-        String encodedPassword = passwordEncoder.encode("sahilTheGreat");
+        String encodedPassword = passwordEncoder.encode("HelloWorld");
+
+        UserLoginDTO loginDTO = new UserLoginDTO("Sahil","HelloWorld");
+
+        passwordEncoder.matches(loginDTO.getPassword(),encodedPassword);
 
     }
-}
 
 
 
 }
+
+
+

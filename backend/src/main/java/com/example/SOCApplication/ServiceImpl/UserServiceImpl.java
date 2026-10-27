@@ -23,9 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -61,9 +61,11 @@ public class UserServiceImpl implements UserService {
 
     private final SecurityEventMapper securityEventMapper;
 
+    private final WebClient webClient;
 
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
 
     //--------REGISTER USER----------------
     @Override
