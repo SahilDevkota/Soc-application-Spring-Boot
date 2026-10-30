@@ -11,7 +11,10 @@ public class Config {
 
     @Bean
     public WebClient webClient(){
-        return WebClient.builder().build();
+        return
+                WebClient.builder().
+                        baseUrl("http://127.0.0.1:8000").
+                        build();
     }
 
 }

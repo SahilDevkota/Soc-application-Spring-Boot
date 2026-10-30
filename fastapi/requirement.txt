@@ -7,3 +7,4 @@ boto3
 nbimporter
 langgraph
 langchain-groq
+pytest

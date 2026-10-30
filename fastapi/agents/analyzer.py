@@ -23,8 +23,7 @@ def call_analyzer(file):
     structured_model = groq_model.with_structured_output(modelStructuredOutput,method="json_schema")
 
 
-    # Ok so yesma chai aba taile, yeuta risk_level ra log file ko second prompt ma rakhni, that same thing is passed towards the model that will call the defender agent.
-
+   
     @tool 
     def call_defender_agent(log: str, risk_level:str)-> str:
         """Calls the defender agent"""

@@ -14,16 +14,14 @@ public class AnalyzerServiceImpl {
 
     private final WebClient webClient;
 
-    public void callAnalyzer(List<LogbackDTO> logbackDTO){
+    public String callAnalyzer(List<LogbackDTO> logbackDTO){
 
-        String haha = webClient.post()
-                .uri("http://127.0.0.1:8000/callAnalyzer")
+        return webClient.post()
+                .uri("/callAnalyzer")
                 .bodyValue(logbackDTO)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-
-        System.out.println(haha);
     }
 
 }
